@@ -36,6 +36,7 @@
     "ethers": "^5.7.2",
     "magic-sdk": "^17.1.6",
     "next": "^13.4.3",
+    "nft.storage": "^7.0.3",
     "postcss": "^8.4.23",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

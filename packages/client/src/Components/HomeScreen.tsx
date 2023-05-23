@@ -16,6 +16,7 @@ import {
   FormControlLabel,
   Container,
   Grid,
+  CircularProgress,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -23,6 +24,9 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import RestoreIcon from '@mui/icons-material/Restore';
 import { MomentType } from '../utils/types';
 import MomentCard from './MomentCard';
+import { NFTStorage, File, Blob } from 'nft.storage';
+import { Create } from '@mui/icons-material';
+
 const style = {
   position: 'absolute' as 'absolute',
   top: '50%',
@@ -47,6 +51,10 @@ const HomeScreen = () => {
   } = useMUD();
   const momentIds = useEntityQuery([Has(Moment)]);
 
+  const client = new NFTStorage({
+    token: import.meta.env.VITE_NFT_STORAGE_TOKEN,
+  });
+
   // modal handlers
   const handleCreateMomentOpen = () => setIsCreateMomentOpen(true);
   const handleClose = () => setIsCreateMomentOpen(false);
@@ -64,9 +72,8 @@ const HomeScreen = () => {
   const [momentIsLive, setMomentIsLive] = useState(false);
   const [momentTitle, setMomentTitle] = useState('');
   const [momentDescription, setMomentDescription] = useState('');
-  const [momentNftMetadata, setMomentNftMetadata] = useState(
-    'https://ipfs.io/ipfs/bafkreicm6ota3tgt2jmphhv4clvjxkdvanv4dvjfmfmztpf5z5ia2wm4rq'
-  );
+  const [submittingMoment, setSubmittingMoment] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [momentName, setMomentName] = useState('');
   const [momentImageURL, setMomentImageURL] = useState('');
@@ -116,11 +123,47 @@ const HomeScreen = () => {
     setMomentImageURL(event.target.value);
   };
 
-  // string memory location, string memory locationType, uint64 date, uint64 startTime, uint64 endTime, bool isLive, string memory title, string memory description, string memory nftMetadata
+  const handleUploadClick = async (event: any) => {
+    console.log('uploading');
+    const file = event.target.files[0];
+
+    if (!file) {
+      console.log('sike');
+      return;
+    } else {
+      console.log('doing things with this file', file);
+      try {
+        const someData = new Blob([file]);
+        // const cid = await client.storeBlob(someData);
+        setSelectedFile(file);
+        console.log('file', file);
+        // console.log('cid', cid);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
 
   const createMomentHandler = async () => {
+    setSubmittingMoment(true);
     try {
       //TODO:  create NFT metadata with nft.storage
+      if (!selectedFile) {
+        return;
+      }
+      const someData = new Blob([selectedFile]);
+      const cid = await client.storeBlob(someData);
+      const image_url = `https://${cid}.ipfs.nftstorage.link/`;
+      const metaData = JSON.stringify({
+        name: momentTitle,
+        description: momentDescription,
+        image: image_url,
+      });
+      const someMoreData = new Blob([metaData]);
+
+      const metaDataCid = await client.storeBlob(someMoreData);
+
+      const metaDataUrl = `https://${metaDataCid}.ipfs.nftstorage.link/`;
 
       const result = await createMoment({
         date: momentDate || 0,
@@ -132,10 +175,15 @@ const HomeScreen = () => {
         // locationType: momentLocationType,
         title: momentTitle,
         description: momentDescription,
-        nftMetadata: momentNftMetadata,
+        nftMetadata: metaDataUrl,
       } as MomentType);
       console.log('result', result);
+      setSubmittingMoment(false);
+      setIsCreateMomentOpen(false);
     } catch (error) {
+      setSubmittingMoment(false);
+      setIsCreateMomentOpen(false);
+      alert('Error creating moment');
       console.log(error);
     }
   };
@@ -148,7 +196,7 @@ const HomeScreen = () => {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
           });
-          console.log('location', location);
+          // console.log('location', location);
         },
         (error) => {
           console.log(error);
@@ -211,23 +259,39 @@ const HomeScreen = () => {
       </Box>
 
       <Container sx={{ mt: 5 }}>
-        <div>
-          Your Location:
-          {location.latitude && (
-            <p>
-              Latitude: {location.latitude}, Longitude: {location.longitude}
-            </p>
-          )}
+        <Typography variant="h5" component="h5" gutterBottom>
+          <span style={{}}>My Wallet:</span> {user.wallet}
+        </Typography>
+        <div style={{ marginBottom: '2em' }}>
+          <Typography variant="h5">
+            My Location 📍:{' '}
+            {location.latitude && (
+              <>
+                Lat: {location.latitude}, Long: {location.longitude}
+              </>
+            )}
+          </Typography>
         </div>
 
         {/* Render Moment Cards */}
         <Grid container spacing={2}>
+          <Grid item xs={12} lg={12}>
+            <Typography
+              variant="h4"
+              component="h4"
+              gutterBottom
+              textAlign={'center'}
+            >
+              Moments
+            </Typography>
+          </Grid>
+
           {momentIds.map((id) => {
             const momentData: MomentType = getComponentValueStrict(Moment, id);
             if (!momentData) {
               return null;
             }
-            console.log('momentData', momentData);
+            // console.log('momentData', momentData);
             return (
               <Grid item xs={12} sm={6} md={4} lg={3}>
                 <MomentCard
@@ -284,14 +348,23 @@ const HomeScreen = () => {
             margin="normal"
             onChange={handleMomentLongChange}
           />
-          <TextField
+          {/* <TextField
             id="outlined-basic"
             label="image url"
             variant="outlined"
             fullWidth
             margin="normal"
             onChange={handleMomentImageURLChange}
-          />
+          /> */}
+          {/* <Button variant="contained" onClick={handleUploadClick} fullWidth> */}
+          <Button variant="outlined" fullWidth>
+            <input
+              type="file"
+              onChange={handleUploadClick}
+              style={{ padding: '.75em' }}
+            />
+          </Button>
+          {/* </Button> */}
           {/* <TextField
             id="date"
             // label="date"
@@ -322,7 +395,11 @@ const HomeScreen = () => {
             />
           </Box>
           <Button variant="contained" onClick={createMomentHandler} fullWidth>
-            Create Moment
+            {submittingMoment ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              <>Create Moment</>
+            )}
           </Button>
         </Box>
       </Modal>

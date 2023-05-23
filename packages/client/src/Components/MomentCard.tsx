@@ -9,13 +9,29 @@ import {
   CardMedia,
   FormControlLabel,
   Grid,
+  Modal,
+  Snackbar,
   Switch,
+  Typography,
 } from '@mui/material';
 import calculateDistance from '../utils/calculateDistance';
 import { useMUD } from '../MUDContext';
 import { useEntityQuery } from '@latticexyz/react';
-import { Has, getComponentValueStrict } from '@latticexyz/recs';
+import { Has, Type, getComponentValueStrict } from '@latticexyz/recs';
 import { CheckIn } from '../utils/types';
+import { removeAddressPadding } from '../utils/removeAddressPadding';
+
+const style = {
+  position: 'absolute' as 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 4,
+};
 
 const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
   const [nftdetails, setNftdetails] = useState(null);
@@ -23,12 +39,19 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
   const [checkedIn, setCheckedIn] = useState(false);
   const [userOwnerMoment, setUserOwnerMoment] = useState(false);
   const isMomentLive = { inputProps: { 'aria-label': 'Is moment Live?' } };
+  const [notInRange, setNotInRange] = useState(false);
+  const notInRangeClose = () => setNotInRange(false);
   const {
     components: { CheckIn },
     systemCalls: { checkIn, toggleIsLive },
   } = useMUD();
 
   const checkInIds = useEntityQuery([Has(CheckIn)]);
+
+  //view checkins modal handlers
+  const handleCreateMomentOpen = () => setIsViewCheckInsOpen(true);
+  const handleClose = () => setIsViewCheckInsOpen(false);
+  const [isViewCheckInsOpen, setIsViewCheckInsOpen] = useState(false);
 
   useEffect(() => {
     if (momentData.owner === wallet) {
@@ -40,13 +63,8 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
   useEffect(() => {
     checkInIds.map((id: any) => {
       const thisCheckInMoment = getComponentValueStrict(CheckIn, id);
-      // console.log('thisCheckInMoment string');
-      // console.log('this is the users wallet', wallet);
-      // console.log(
-      //   'does it contain?',
-      //   thisCheckInMoment.wallet.includes(wallet)
-      // );
-      if (`0x${thisCheckInMoment.wallet.substring(26)}` === wallet) {
+
+      if (removeAddressPadding(thisCheckInMoment.wallet) === wallet) {
         console.log('this is happening');
         setCheckedIn(true);
       }
@@ -73,9 +91,6 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
 
     getNftMetadata();
   }, []);
-
-  // const targetLocation = momentData.location.split(',');
-  // console.log('targetLocation', targetLocation);
 
   const handleCheckIn = async () => {
     const range = 250; // in meters
@@ -105,6 +120,7 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
       }
     } else {
       console.log('User is out of range.');
+      setNotInRange(true);
     }
   };
 
@@ -120,18 +136,75 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
 
   const NotOwnerMomentData = () => (
     <>
-      {checkedIn ? (
-        <p>You have checked in!</p>
-      ) : (
-        <Button
-          variant="contained"
-          disabled={!momentData.isLive}
-          onClick={handleCheckIn}
-        >
-          Check In
-        </Button>
-      )}
+      {checkInIds.map((id: any) => {
+        const thisCheckInMoment = getComponentValueStrict(CheckIn, id);
+        console.log(
+          'NOT OWNER MOMENT DATA ---- thisCheckInMoment',
+          thisCheckInMoment
+        );
+        const checkInOwnerWallet = removeAddressPadding(
+          thisCheckInMoment.wallet
+        );
+        const checkInMomentId = `0x${thisCheckInMoment.momentId.substring(64)}`;
+        console.log('checkInOwnerWallet', checkInOwnerWallet);
+        if (checkInOwnerWallet === wallet && momentId === checkInMomentId) {
+          console.log('we are checked in here');
+          return <p>You have checked in!</p>;
+        } else {
+          return (
+            <Button
+              variant="contained"
+              disabled={!momentData.isLive}
+              onClick={handleCheckIn}
+            >
+              Check In
+            </Button>
+          );
+        }
+      })}
     </>
+  );
+
+  const ViewCheckInsModal = () => (
+    <Modal
+      open={isViewCheckInsOpen}
+      onClose={handleClose}
+      aria-labelledby="modal-modal-view-check-ins"
+      aria-describedby="modal-modal-description-view-check-ins"
+    >
+      <Box sx={style}>
+        <Typography
+          id="modal-modal-title-view-check-ins"
+          variant="h4"
+          component="h3"
+          textAlign={'center'}
+        >
+          Check Ins
+        </Typography>
+        <Grid container spacing={2}>
+          {checkInIds.map((id) => {
+            const checkInOfThisMoment = getComponentValueStrict(CheckIn, id);
+            const thisCheckInMomentId = `0x${checkInOfThisMoment.momentId.substring(
+              64
+            )}`;
+            console.log('thisCheckInMomentId', thisCheckInMomentId);
+            console.log('checkInOfThisMoment', checkInOfThisMoment);
+            console.log('momentId', momentId);
+            if (!checkInOfThisMoment || thisCheckInMomentId !== momentId)
+              return <></>;
+            return (
+              <Grid item xs={12} key={id} textAlign={'center'}>
+                <Box marginTop={2} marginBottom={2}>
+                  <Typography variant="h8">
+                    {removeAddressPadding(checkInOfThisMoment.wallet)}
+                  </Typography>
+                </Box>
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Box>
+    </Modal>
   );
 
   const OwnerMomentData = () => {
@@ -139,7 +212,9 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
     return (
       <Grid container spacing={2}>
         <Grid item xs={6}>
-          <Button variant="contained">View CheckIns</Button>
+          <Button variant="contained" onClick={handleCreateMomentOpen}>
+            View CheckIns
+          </Button>
         </Grid>
         <Grid item xs={6}>
           {/* <Box marginTop={2} marginBottom={2}> */}
@@ -158,25 +233,37 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
             }
           />
           {/* </Box> */}
+          <ViewCheckInsModal />
         </Grid>
       </Grid>
     );
   };
 
   return (
-    <Card>
-      <CardHeader title={momentData.title} />
-      <CardMedia
-        sx={{ height: 250 }}
-        component="img"
-        image={nftdetails ? nftdetails?.image : ''}
-      />
-      <CardContent>
-        <p>{momentData.description}</p>
+    <>
+      <Card>
+        <CardHeader title={momentData.title} />
+        <CardMedia
+          sx={{ height: 250 }}
+          component="img"
+          image={nftdetails ? nftdetails?.image : ''}
+        />
+        <CardContent>
+          <p>{momentData.description}</p>
 
-        {userOwnerMoment ? <OwnerMomentData /> : <NotOwnerMomentData />}
-      </CardContent>
-    </Card>
+          {userOwnerMoment ? <OwnerMomentData /> : <NotOwnerMomentData />}
+        </CardContent>
+      </Card>
+      <Snackbar
+        autoHideDuration={5000}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        open={notInRange}
+        onClose={notInRangeClose}
+        message="Not In Range"
+        key={'topcenter'}
+        color={'red'}
+      />
+    </>
   );
 };
 
