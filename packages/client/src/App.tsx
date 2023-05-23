@@ -9,14 +9,16 @@ import {
   Button,
   Card,
   Container,
+  Grid,
   LinearProgress,
   Skeleton,
   Typography,
 } from '@mui/material';
 import { ethers } from 'ethers';
-import { Title } from '@mui/icons-material';
+import { Grade, Title } from '@mui/icons-material';
 import { UserContext } from './utils/UserContext';
 import HomeScreen from './Components/HomeScreen';
+import momentsLogo from './images/moments-logo.png';
 
 export const App = () => {
   const {
@@ -118,12 +120,22 @@ export const App = () => {
 
   return (
     <Container>
-      <Typography>Moments</Typography>
-      <Typography> Make moments and prove you were there.</Typography>
-      <Button variant="outlined" onClick={handleLogin}>
-        Login
-      </Button>
-      <Card></Card>
+      <Grid container rowSpacing={4}>
+        <Grid item xs={12} textAlign={'center'} marginTop={'25vh'}>
+          <img src="./src/images/momentsLogo.png" height="500px" />
+        </Grid>
+        <Grid item xs={12} textAlign={'center'} marginTop={'-16vh'}>
+          <Typography variant="h5">
+            {' '}
+            Make moments and prove you were there.
+          </Typography>
+          <Box marginTop={'3vh'}>
+            <Button variant="outlined" onClick={handleLogin} size="large">
+              Login
+            </Button>
+          </Box>
+        </Grid>
+      </Grid>
     </Container>
   );
 };

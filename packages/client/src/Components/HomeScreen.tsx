@@ -208,7 +208,7 @@ const HomeScreen = () => {
   return (
     <>
       <Box sx={{ flexGrow: 1 }}>
-        <AppBar position="static">
+        <AppBar position="static" style={{ backgroundColor: '#000000' }}>
           <Toolbar>
             {/* <IconButton
               size="large"
@@ -233,7 +233,7 @@ const HomeScreen = () => {
               <AddCircleOutlineIcon color="inherit" />
             </IconButton>
 
-            <IconButton
+            {/* <IconButton
               size="large"
               edge="end"
               color="inherit"
@@ -242,7 +242,7 @@ const HomeScreen = () => {
               onClick={() => user.logout()}
             >
               <RestoreIcon color="inherit" />
-            </IconButton>
+            </IconButton> */}
 
             <IconButton
               size="large"
@@ -293,7 +293,7 @@ const HomeScreen = () => {
             }
             // console.log('momentData', momentData);
             return (
-              <Grid item xs={12} sm={6} md={4} lg={3}>
+              <Grid item xs={12} sm={6} md={4} lg={3} key={id + momentData}>
                 <MomentCard
                   key={id}
                   momentData={momentData as MomentType}

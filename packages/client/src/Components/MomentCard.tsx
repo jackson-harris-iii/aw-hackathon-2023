@@ -136,32 +136,46 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
 
   const NotOwnerMomentData = () => (
     <>
-      {checkInIds.map((id: any) => {
-        const thisCheckInMoment = getComponentValueStrict(CheckIn, id);
-        console.log(
-          'NOT OWNER MOMENT DATA ---- thisCheckInMoment',
-          thisCheckInMoment
-        );
-        const checkInOwnerWallet = removeAddressPadding(
-          thisCheckInMoment.wallet
-        );
-        const checkInMomentId = `0x${thisCheckInMoment.momentId.substring(64)}`;
-        console.log('checkInOwnerWallet', checkInOwnerWallet);
-        if (checkInOwnerWallet === wallet && momentId === checkInMomentId) {
-          console.log('we are checked in here');
-          return <p>You have checked in!</p>;
-        } else {
-          return (
-            <Button
-              variant="contained"
-              disabled={!momentData.isLive}
-              onClick={handleCheckIn}
-            >
-              Check In
-            </Button>
+      {/* handle if there are no checkin ids */}
+      {checkInIds.length === 0 ? (
+        <Button
+          variant="contained"
+          disabled={!momentData.isLive}
+          onClick={handleCheckIn}
+        >
+          Check In
+        </Button>
+      ) : (
+        checkInIds.map((id: any) => {
+          const thisCheckInMoment = getComponentValueStrict(CheckIn, id);
+          console.log(
+            'NOT OWNER MOMENT DATA ---- thisCheckInMoment',
+            thisCheckInMoment
           );
-        }
-      })}
+          const checkInOwnerWallet = removeAddressPadding(
+            thisCheckInMoment.wallet
+          );
+          const checkInMomentId = `0x${thisCheckInMoment.momentId.substring(
+            64
+          )}`;
+          console.log('checkInOwnerWallet', checkInOwnerWallet);
+          if (checkInOwnerWallet === wallet && momentId === checkInMomentId) {
+            console.log('we are checked in here');
+            return <p>You have checked in!</p>;
+          } else {
+            console.log('we are not checked in here');
+            return (
+              <Button
+                variant="contained"
+                disabled={!momentData.isLive}
+                onClick={handleCheckIn}
+              >
+                Check In
+              </Button>
+            );
+          }
+        })
+      )}
     </>
   );
 
@@ -241,7 +255,7 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
 
   return (
     <>
-      <Card>
+      <Card key={momentId}>
         <CardHeader title={momentData.title} />
         <CardMedia
           sx={{ height: 250 }}
