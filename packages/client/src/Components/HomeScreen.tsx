@@ -147,7 +147,6 @@ const HomeScreen = () => {
   const createMomentHandler = async () => {
     setSubmittingMoment(true);
     try {
-      //TODO:  create NFT metadata with nft.storage
       if (!selectedFile) {
         return;
       }
