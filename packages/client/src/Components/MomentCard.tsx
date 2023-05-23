@@ -46,12 +46,17 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
     systemCalls: { checkIn, toggleIsLive },
   } = useMUD();
 
-  const checkInIds = useEntityQuery([Has(CheckIn)]);
+  function onlyUnique(value: any, index: any, array: string | any[]) {
+    return array.indexOf(value) === index;
+  }
+
+  const checkInIds = useEntityQuery([Has(CheckIn)]).filter(onlyUnique);
 
   //view checkins modal handlers
   const handleCreateMomentOpen = () => setIsViewCheckInsOpen(true);
   const handleClose = () => setIsViewCheckInsOpen(false);
   const [isViewCheckInsOpen, setIsViewCheckInsOpen] = useState(false);
+  const [myCheckins, setMyCheckins] = useState<CheckIn[]>([]);
 
   useEffect(() => {
     if (momentData.owner === wallet) {
@@ -61,14 +66,19 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
 
   //check if user has checked in
   useEffect(() => {
+    const matchingCheckIns: React.SetStateAction<CheckIn[]> = [];
+
     checkInIds.map((id: any) => {
       const thisCheckInMoment = getComponentValueStrict(CheckIn, id);
 
       if (removeAddressPadding(thisCheckInMoment.wallet) === wallet) {
         console.log('this is happening');
+        matchingCheckIns.push(thisCheckInMoment);
         setCheckedIn(true);
       }
     });
+
+    // setMyCheckins(matchingCheckIns);
 
     // if (thisMomentCheckInIds.length > 0) {
     //   setMatchingCheckIns(thisMomentCheckInIds as unknown as CheckIn[]);
@@ -137,8 +147,9 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
   const NotOwnerMomentData = () => (
     <>
       {/* handle if there are no checkin ids */}
-      {checkInIds.length === 0 ? (
+      {myCheckins.length === 0 ? (
         <Button
+          key={momentId}
           variant="contained"
           disabled={!momentData.isLive}
           onClick={handleCheckIn}
@@ -146,6 +157,7 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
           Check In
         </Button>
       ) : (
+        // <></>
         checkInIds.map((id: any) => {
           const thisCheckInMoment = getComponentValueStrict(CheckIn, id);
           console.log(
@@ -159,7 +171,7 @@ const MomentCard = ({ momentData, userLocation, momentId, wallet }: any) => {
             64
           )}`;
           console.log('checkInOwnerWallet', checkInOwnerWallet);
-          if (checkInOwnerWallet === wallet && momentId === checkInMomentId) {
+          if (checkInOwnerWallet === wallet || momentId === checkInMomentId) {
             console.log('we are checked in here');
             return <p>You have checked in!</p>;
           } else {
