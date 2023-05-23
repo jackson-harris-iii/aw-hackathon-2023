@@ -5,16 +5,16 @@ pragma solidity >=0.8.0;
 
 interface IMomentSystem {
   function createMoment(
-    string memory location,
-    string memory locationType,
     uint64 date,
     uint64 startTime,
     uint64 endTime,
     bool isLive,
+    string memory owner,
+    string memory location,
     string memory title,
     string memory description,
     string memory nftMetadata
-  ) external;
+  ) external returns (bool);
 
-  function toggleIsLive(bytes32 momentId) external;
+  function toggleIsLive(bytes32 momentId) external returns (bool);
 }

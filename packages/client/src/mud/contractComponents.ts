@@ -16,7 +16,6 @@ export function defineContractComponents(world: World) {
           isLive: RecsType.Boolean,
           owner: RecsType.String,
           location: RecsType.String,
-          locationType: RecsType.String,
           title: RecsType.String,
           description: RecsType.String,
           nftMetadata: RecsType.String,

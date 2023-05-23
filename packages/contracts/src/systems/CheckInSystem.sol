@@ -13,14 +13,15 @@ import {
 } from "../codegen/Tables.sol";
 
 contract CheckInSystem is System {
-  function checkIn(bytes32 momentId) public {
+  function checkIn(bytes32 momentId, string memory walletAddress) public returns (bool) {
     
     bytes32 id = getUniqueEntity();
 
     CheckIn.set(id, CheckInData({
       momentId: momentId,
       blockNumber: block.number,
-      wallet: addressToEntity(_msgSender())
+      wallet: walletAddress
     }));
+  return true;
   }
 }

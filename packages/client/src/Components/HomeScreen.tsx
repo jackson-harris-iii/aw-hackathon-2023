@@ -1,7 +1,7 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { UserContext } from '../utils/UserContext';
 import { useEntityQuery } from '@latticexyz/react';
-import { Has } from '@latticexyz/recs';
+import { Has, getComponentValueStrict } from '@latticexyz/recs';
 import { useMUD } from '../MUDContext';
 import {
   Box,
@@ -14,12 +14,15 @@ import {
   TextField,
   Switch,
   FormControlLabel,
+  Container,
+  Grid,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import LogoutIcon from '@mui/icons-material/Logout';
 import RestoreIcon from '@mui/icons-material/Restore';
-import CreateMoment from './createMoment';
+import { MomentType } from '../utils/types';
+import MomentCard from './MomentCard';
 const style = {
   position: 'absolute' as 'absolute',
   top: '50%',
@@ -32,29 +35,86 @@ const style = {
   p: 4,
 };
 
+// https://cdn.discordapp.com/attachments/1047616230611230770/1104089608930738237/jacksonthedev_Brickell_Miami_with_fancy_galaxy_starsnight_dream_9f67c669-0f58-4a6e-a0ec-a0a15ec7f493.png
+
 const HomeScreen = () => {
   const [user, setUser] = useContext(UserContext);
+  const [location, setLocation] = useState({});
+
   const {
-    components: { Moment, CheckIn },
-    systemCalls: { createMoment, checkIn },
+    components: { Moment },
+    systemCalls: { createMoment },
   } = useMUD();
   const momentIds = useEntityQuery([Has(Moment)]);
 
   // modal handlers
-  const [isCreateMomentOpen, setIsCreateMomentOpen] = useState(false);
   const handleCreateMomentOpen = () => setIsCreateMomentOpen(true);
   const handleClose = () => setIsCreateMomentOpen(false);
+  const [isCreateMomentOpen, setIsCreateMomentOpen] = useState(false);
+
+  // moment values
   const isMomentLive = { inputProps: { 'aria-label': 'Is moment Live?' } };
-  const [momentName, setMomentName] = useState('');
   const [momentLocation, setMomentLocation] = useState('');
-  const [momentLocationType, setMomentLocationType] = useState('');
-  const [momentDate, setMomentDate] = useState('');
-  const [momentStartTime, setMomentStartTime] = useState('');
-  const [momentEndTime, setMomentEndTime] = useState('');
+  const [momentLat, setMomentLat] = useState('');
+  const [momentLong, setMomentLong] = useState('');
+  const [momentLocationType, setMomentLocationType] = useState('lat/long');
+  const [momentDate, setMomentDate] = useState(0);
+  const [momentStartTime, setMomentStartTime] = useState<Number>(0);
+  const [momentEndTime, setMomentEndTime] = useState(0);
   const [momentIsLive, setMomentIsLive] = useState(false);
   const [momentTitle, setMomentTitle] = useState('');
   const [momentDescription, setMomentDescription] = useState('');
-  const [momentNftMetadata, setMomentNftMetadata] = useState('');
+  const [momentNftMetadata, setMomentNftMetadata] = useState(
+    'https://ipfs.io/ipfs/bafkreicm6ota3tgt2jmphhv4clvjxkdvanv4dvjfmfmztpf5z5ia2wm4rq'
+  );
+
+  const [momentName, setMomentName] = useState('');
+  const [momentImageURL, setMomentImageURL] = useState('');
+
+  // input handlers
+  const handleMomentNameChange = (event: any) => {
+    setMomentName(event.target.value);
+  };
+
+  const handleMomentLatChange = (event: any) => {
+    setMomentLat(event.target.value);
+  };
+
+  const handleMomentLongChange = (event: any) => {
+    setMomentLong(event.target.value);
+  };
+
+  const handleMomentLocationTypeChange = (event: any) => {
+    setMomentLocationType(event.target.value);
+  };
+
+  const handleMomentDateChange = (event: any) => {
+    setMomentDate(event.target.value);
+  };
+
+  const handleMomentStartTimeChange = (event: any) => {
+    setMomentStartTime(event.target.value);
+  };
+
+  const handleMomentEndTimeChange = (event: any) => {
+    setMomentEndTime(event.target.value);
+  };
+
+  const handleMomentIsLiveChange = (event: any) => {
+    setMomentIsLive(event.target.checked);
+  };
+
+  const handleMomentTitleChange = (event: any) => {
+    setMomentTitle(event.target.value);
+  };
+
+  const handleMomentDescriptionChange = (event: any) => {
+    setMomentDescription(event.target.value);
+  };
+
+  const handleMomentImageURLChange = (event: any) => {
+    setMomentImageURL(event.target.value);
+  };
 
   // string memory location, string memory locationType, uint64 date, uint64 startTime, uint64 endTime, bool isLive, string memory title, string memory description, string memory nftMetadata
 
@@ -62,21 +122,40 @@ const HomeScreen = () => {
     try {
       //TODO:  create NFT metadata with nft.storage
 
-      createMoment({
-        location: momentLocation,
-        locationType: momentLocationType,
-        date: momentDate,
+      const result = await createMoment({
+        date: momentDate || 0,
         startTime: momentStartTime || 0,
         endTime: momentEndTime || 0,
         isLive: momentIsLive,
+        owner: user.wallet,
+        location: `${momentLat}, ${momentLong}`,
+        // locationType: momentLocationType,
         title: momentTitle,
         description: momentDescription,
         nftMetadata: momentNftMetadata,
-      });
+      } as MomentType);
+      console.log('result', result);
     } catch (error) {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+          console.log('location', location);
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
+    }
+  }, [momentIds]);
 
   return (
     <>
@@ -130,6 +209,40 @@ const HomeScreen = () => {
           </Toolbar>
         </AppBar>
       </Box>
+
+      <Container sx={{ mt: 5 }}>
+        <div>
+          Your Location:
+          {location.latitude && (
+            <p>
+              Latitude: {location.latitude}, Longitude: {location.longitude}
+            </p>
+          )}
+        </div>
+
+        {/* Render Moment Cards */}
+        <Grid container spacing={2}>
+          {momentIds.map((id) => {
+            const momentData: MomentType = getComponentValueStrict(Moment, id);
+            if (!momentData) {
+              return null;
+            }
+            console.log('momentData', momentData);
+            return (
+              <Grid item xs={12} sm={6} md={4} lg={3}>
+                <MomentCard
+                  key={id}
+                  momentData={momentData as MomentType}
+                  momentId={id}
+                  userLocation={location}
+                  wallet={user.wallet}
+                />
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Container>
+
       {/* Create Moment Modal */}
       <Modal
         open={isCreateMomentOpen}
@@ -147,6 +260,7 @@ const HomeScreen = () => {
             type="momentTitle"
             fullWidth
             margin="normal"
+            onChange={handleMomentTitleChange}
           />
           <TextField
             id="outlined-basic"
@@ -154,13 +268,21 @@ const HomeScreen = () => {
             variant="outlined"
             fullWidth
             margin="normal"
+            onChange={handleMomentDescriptionChange}
           />
           <TextField
-            id="outlined-basic"
-            label="location"
+            id="latitutde"
+            label="lat"
             variant="outlined"
-            fullWidth
             margin="normal"
+            onChange={handleMomentLatChange}
+          />
+          <TextField
+            id="longitude"
+            label="long"
+            variant="outlined"
+            margin="normal"
+            onChange={handleMomentLongChange}
           />
           <TextField
             id="outlined-basic"
@@ -168,6 +290,7 @@ const HomeScreen = () => {
             variant="outlined"
             fullWidth
             margin="normal"
+            onChange={handleMomentImageURLChange}
           />
           {/* <TextField
             id="date"
@@ -193,7 +316,9 @@ const HomeScreen = () => {
           <Box marginTop={2} marginBottom={2}>
             <FormControlLabel
               label="Is moment live?"
-              control={<Switch {...isMomentLive} defaultChecked />}
+              control={
+                <Switch {...isMomentLive} onChange={handleMomentIsLiveChange} />
+              }
             />
           </Box>
           <Button variant="contained" onClick={createMomentHandler} fullWidth>

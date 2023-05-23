@@ -11,28 +11,31 @@ import {
 } from "../codegen/Tables.sol";
 
 contract MomentSystem is System {
-  function createMoment(string memory location, string memory locationType, uint64 date, uint64 startTime, uint64 endTime, bool isLive, string memory title, string memory description, string memory nftMetadata) public {
+  function createMoment( uint64 date, uint64 startTime, uint64 endTime, bool isLive, string memory owner, string memory location, string memory title, string memory description, string memory nftMetadata) public returns (bool) {
     
     bytes32 id = getUniqueEntity();
     Moment.set(id, MomentData({
-      location: location,
-      locationType: locationType,
       date: date,
       startTime: startTime,
       endTime: endTime,
       isLive: isLive,
-      owner: addressToEntity(_msgSender()),
+      owner: owner,
+      location: location,
+      // locationType: locationType,
       title: title,
       description: description,
       nftMetadata: nftMetadata
     }));
+    return true;
   }
 
-  function toggleIsLive(bytes32 momentId) public{
-    bytes32 sender = addressToEntity(_msgSender());
+  function toggleIsLive(bytes32 momentId) public returns (bool){
+    // bytes32 sender = addressToEntity(_msgSender());
     
-    require(sender == Moment.getOwner(momentId), "Only the owner of the moment can toggle the isLive flag");
+    // require(sender == Moment.getOwner(momentId), "Only the owner of the moment can toggle the isLive flag");
+    // require(Moment.getOwner(momentId) == owner, "Only the owner of the moment can toggle the isLive flag");
 
     Moment.setIsLive(momentId, !Moment.getIsLive(momentId));
+    return true;
   }
 }

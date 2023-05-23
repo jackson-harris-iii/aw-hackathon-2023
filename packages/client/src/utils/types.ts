@@ -1,11 +1,11 @@
-export type Moment = {
-  location: string;
-  locationType: string;
-  date: number;
-  startTime: number;
-  endTime: number;
+export type MomentType = {
+  date: number | bigint;
+  startTime: number | bigint;
+  endTime: number | bigint;
   isLive: boolean;
   owner: string;
+  location: string;
+  // locationType: string;
   title: string;
   description: string;
   nftMetadata: string;
@@ -13,6 +13,6 @@ export type Moment = {
 
 export type CheckIn = {
   momentId: string;
-  blockNumber: number;
+  blockNumber: number | bigint;
   wallet: string;
 };

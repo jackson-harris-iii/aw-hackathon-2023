@@ -1,7 +1,7 @@
 import { ClientComponents } from './createClientComponents';
 import { SetupNetworkResult } from './setupNetwork';
 import { world } from './world';
-import { Moment } from '../utils/types';
+import { MomentType } from '../utils/types';
 
 export type SystemCalls = ReturnType<typeof createSystemCalls>;
 
@@ -13,13 +13,42 @@ export function createSystemCalls(
   { worldSend }: SetupNetworkResult,
   components: ClientComponents
 ) {
-  const createMoment = (moment: any) => {
-    worldSend('createMoment', [...moment] as any);
+  const createMoment = (moment: MomentType) => {
+    const {
+      date,
+      startTime,
+      endTime,
+      isLive,
+      owner,
+      location,
+      // locationType,
+      title,
+      description,
+      nftMetadata,
+    } = moment;
+    return worldSend('createMoment', [
+      date,
+      startTime,
+      endTime,
+      isLive,
+      owner,
+      location,
+      title,
+      description,
+      nftMetadata,
+    ]);
   };
 
-  const checkIn = (momentId: string) => {
-    worldSend('checkIn', [entityToBytes32(momentId)] as any);
+  const checkIn = (momentId: string, wallet: string) => {
+    return worldSend('checkIn', [
+      entityToBytes32(momentId),
+      entityToBytes32(wallet),
+    ] as any);
   };
 
-  return { createMoment, checkIn };
+  const toggleIsLive = (momentId: string) => {
+    return worldSend('toggleIsLive', [entityToBytes32(momentId)] as any);
+  };
+
+  return { createMoment, checkIn, toggleIsLive };
 }

@@ -9,6 +9,7 @@ import {
   Button,
   Card,
   Container,
+  LinearProgress,
   Skeleton,
   Typography,
 } from '@mui/material';
@@ -108,10 +109,8 @@ export const App = () => {
   if (loading) {
     return (
       <Container>
-        <Box sx={{ width: 300 }}>
-          <Skeleton />
-          <Skeleton animation="wave" />
-          <Skeleton animation={false} />
+        <Box sx={{ width: '100%' }}>
+          <LinearProgress />
         </Box>
       </Container>
     );

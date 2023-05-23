@@ -25,9 +25,8 @@ struct MomentData {
   uint64 startTime;
   uint64 endTime;
   bool isLive;
-  bytes32 owner;
+  string owner;
   string location;
-  string locationType;
   string title;
   string description;
   string nftMetadata;
@@ -36,17 +35,16 @@ struct MomentData {
 library Moment {
   /** Get the table's schema */
   function getSchema() internal pure returns (Schema) {
-    SchemaType[] memory _schema = new SchemaType[](10);
+    SchemaType[] memory _schema = new SchemaType[](9);
     _schema[0] = SchemaType.UINT64;
     _schema[1] = SchemaType.UINT64;
     _schema[2] = SchemaType.UINT64;
     _schema[3] = SchemaType.BOOL;
-    _schema[4] = SchemaType.BYTES32;
+    _schema[4] = SchemaType.STRING;
     _schema[5] = SchemaType.STRING;
     _schema[6] = SchemaType.STRING;
     _schema[7] = SchemaType.STRING;
     _schema[8] = SchemaType.STRING;
-    _schema[9] = SchemaType.STRING;
 
     return SchemaLib.encode(_schema);
   }
@@ -60,17 +58,16 @@ library Moment {
 
   /** Get the table's metadata */
   function getMetadata() internal pure returns (string memory, string[] memory) {
-    string[] memory _fieldNames = new string[](10);
+    string[] memory _fieldNames = new string[](9);
     _fieldNames[0] = "date";
     _fieldNames[1] = "startTime";
     _fieldNames[2] = "endTime";
     _fieldNames[3] = "isLive";
     _fieldNames[4] = "owner";
     _fieldNames[5] = "location";
-    _fieldNames[6] = "locationType";
-    _fieldNames[7] = "title";
-    _fieldNames[8] = "description";
-    _fieldNames[9] = "nftMetadata";
+    _fieldNames[6] = "title";
+    _fieldNames[7] = "description";
+    _fieldNames[8] = "nftMetadata";
     return ("Moment", _fieldNames);
   }
 
@@ -233,37 +230,121 @@ library Moment {
   }
 
   /** Get owner */
-  function getOwner(bytes32 key) internal view returns (bytes32 owner) {
+  function getOwner(bytes32 key) internal view returns (string memory owner) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
     bytes memory _blob = StoreSwitch.getField(_tableId, _keyTuple, 4);
-    return (Bytes.slice32(_blob, 0));
+    return (string(_blob));
   }
 
   /** Get owner (using the specified store) */
-  function getOwner(IStore _store, bytes32 key) internal view returns (bytes32 owner) {
+  function getOwner(IStore _store, bytes32 key) internal view returns (string memory owner) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
     bytes memory _blob = _store.getField(_tableId, _keyTuple, 4);
-    return (Bytes.slice32(_blob, 0));
+    return (string(_blob));
   }
 
   /** Set owner */
-  function setOwner(bytes32 key, bytes32 owner) internal {
+  function setOwner(bytes32 key, string memory owner) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.setField(_tableId, _keyTuple, 4, abi.encodePacked((owner)));
+    StoreSwitch.setField(_tableId, _keyTuple, 4, bytes((owner)));
   }
 
   /** Set owner (using the specified store) */
-  function setOwner(IStore _store, bytes32 key, bytes32 owner) internal {
+  function setOwner(IStore _store, bytes32 key, string memory owner) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.setField(_tableId, _keyTuple, 4, abi.encodePacked((owner)));
+    _store.setField(_tableId, _keyTuple, 4, bytes((owner)));
+  }
+
+  /** Get the length of owner */
+  function lengthOwner(bytes32 key) internal view returns (uint256) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    uint256 _byteLength = StoreSwitch.getFieldLength(_tableId, _keyTuple, 4, getSchema());
+    return _byteLength / 1;
+  }
+
+  /** Get the length of owner (using the specified store) */
+  function lengthOwner(IStore _store, bytes32 key) internal view returns (uint256) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    uint256 _byteLength = _store.getFieldLength(_tableId, _keyTuple, 4, getSchema());
+    return _byteLength / 1;
+  }
+
+  /** Get an item of owner (unchecked, returns invalid data if index overflows) */
+  function getItemOwner(bytes32 key, uint256 _index) internal view returns (string memory) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    bytes memory _blob = StoreSwitch.getFieldSlice(_tableId, _keyTuple, 4, getSchema(), _index * 1, (_index + 1) * 1);
+    return (string(_blob));
+  }
+
+  /** Get an item of owner (using the specified store) (unchecked, returns invalid data if index overflows) */
+  function getItemOwner(IStore _store, bytes32 key, uint256 _index) internal view returns (string memory) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    bytes memory _blob = _store.getFieldSlice(_tableId, _keyTuple, 4, getSchema(), _index * 1, (_index + 1) * 1);
+    return (string(_blob));
+  }
+
+  /** Push a slice to owner */
+  function pushOwner(bytes32 key, string memory _slice) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    StoreSwitch.pushToField(_tableId, _keyTuple, 4, bytes((_slice)));
+  }
+
+  /** Push a slice to owner (using the specified store) */
+  function pushOwner(IStore _store, bytes32 key, string memory _slice) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    _store.pushToField(_tableId, _keyTuple, 4, bytes((_slice)));
+  }
+
+  /** Pop a slice from owner */
+  function popOwner(bytes32 key) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    StoreSwitch.popFromField(_tableId, _keyTuple, 4, 1);
+  }
+
+  /** Pop a slice from owner (using the specified store) */
+  function popOwner(IStore _store, bytes32 key) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    _store.popFromField(_tableId, _keyTuple, 4, 1);
+  }
+
+  /** Update a slice of owner at `_index` */
+  function updateOwner(bytes32 key, uint256 _index, string memory _slice) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    StoreSwitch.updateInField(_tableId, _keyTuple, 4, _index * 1, bytes((_slice)));
+  }
+
+  /** Update a slice of owner (using the specified store) at `_index` */
+  function updateOwner(IStore _store, bytes32 key, uint256 _index, string memory _slice) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    _store.updateInField(_tableId, _keyTuple, 4, _index * 1, bytes((_slice)));
   }
 
   /** Get location */
@@ -384,130 +465,12 @@ library Moment {
     _store.updateInField(_tableId, _keyTuple, 5, _index * 1, bytes((_slice)));
   }
 
-  /** Get locationType */
-  function getLocationType(bytes32 key) internal view returns (string memory locationType) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    bytes memory _blob = StoreSwitch.getField(_tableId, _keyTuple, 6);
-    return (string(_blob));
-  }
-
-  /** Get locationType (using the specified store) */
-  function getLocationType(IStore _store, bytes32 key) internal view returns (string memory locationType) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    bytes memory _blob = _store.getField(_tableId, _keyTuple, 6);
-    return (string(_blob));
-  }
-
-  /** Set locationType */
-  function setLocationType(bytes32 key, string memory locationType) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    StoreSwitch.setField(_tableId, _keyTuple, 6, bytes((locationType)));
-  }
-
-  /** Set locationType (using the specified store) */
-  function setLocationType(IStore _store, bytes32 key, string memory locationType) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    _store.setField(_tableId, _keyTuple, 6, bytes((locationType)));
-  }
-
-  /** Get the length of locationType */
-  function lengthLocationType(bytes32 key) internal view returns (uint256) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    uint256 _byteLength = StoreSwitch.getFieldLength(_tableId, _keyTuple, 6, getSchema());
-    return _byteLength / 1;
-  }
-
-  /** Get the length of locationType (using the specified store) */
-  function lengthLocationType(IStore _store, bytes32 key) internal view returns (uint256) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    uint256 _byteLength = _store.getFieldLength(_tableId, _keyTuple, 6, getSchema());
-    return _byteLength / 1;
-  }
-
-  /** Get an item of locationType (unchecked, returns invalid data if index overflows) */
-  function getItemLocationType(bytes32 key, uint256 _index) internal view returns (string memory) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    bytes memory _blob = StoreSwitch.getFieldSlice(_tableId, _keyTuple, 6, getSchema(), _index * 1, (_index + 1) * 1);
-    return (string(_blob));
-  }
-
-  /** Get an item of locationType (using the specified store) (unchecked, returns invalid data if index overflows) */
-  function getItemLocationType(IStore _store, bytes32 key, uint256 _index) internal view returns (string memory) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    bytes memory _blob = _store.getFieldSlice(_tableId, _keyTuple, 6, getSchema(), _index * 1, (_index + 1) * 1);
-    return (string(_blob));
-  }
-
-  /** Push a slice to locationType */
-  function pushLocationType(bytes32 key, string memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    StoreSwitch.pushToField(_tableId, _keyTuple, 6, bytes((_slice)));
-  }
-
-  /** Push a slice to locationType (using the specified store) */
-  function pushLocationType(IStore _store, bytes32 key, string memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    _store.pushToField(_tableId, _keyTuple, 6, bytes((_slice)));
-  }
-
-  /** Pop a slice from locationType */
-  function popLocationType(bytes32 key) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    StoreSwitch.popFromField(_tableId, _keyTuple, 6, 1);
-  }
-
-  /** Pop a slice from locationType (using the specified store) */
-  function popLocationType(IStore _store, bytes32 key) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    _store.popFromField(_tableId, _keyTuple, 6, 1);
-  }
-
-  /** Update a slice of locationType at `_index` */
-  function updateLocationType(bytes32 key, uint256 _index, string memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    StoreSwitch.updateInField(_tableId, _keyTuple, 6, _index * 1, bytes((_slice)));
-  }
-
-  /** Update a slice of locationType (using the specified store) at `_index` */
-  function updateLocationType(IStore _store, bytes32 key, uint256 _index, string memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32((key));
-
-    _store.updateInField(_tableId, _keyTuple, 6, _index * 1, bytes((_slice)));
-  }
-
   /** Get title */
   function getTitle(bytes32 key) internal view returns (string memory title) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    bytes memory _blob = StoreSwitch.getField(_tableId, _keyTuple, 7);
+    bytes memory _blob = StoreSwitch.getField(_tableId, _keyTuple, 6);
     return (string(_blob));
   }
 
@@ -516,7 +479,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    bytes memory _blob = _store.getField(_tableId, _keyTuple, 7);
+    bytes memory _blob = _store.getField(_tableId, _keyTuple, 6);
     return (string(_blob));
   }
 
@@ -525,7 +488,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.setField(_tableId, _keyTuple, 7, bytes((title)));
+    StoreSwitch.setField(_tableId, _keyTuple, 6, bytes((title)));
   }
 
   /** Set title (using the specified store) */
@@ -533,7 +496,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.setField(_tableId, _keyTuple, 7, bytes((title)));
+    _store.setField(_tableId, _keyTuple, 6, bytes((title)));
   }
 
   /** Get the length of title */
@@ -541,7 +504,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    uint256 _byteLength = StoreSwitch.getFieldLength(_tableId, _keyTuple, 7, getSchema());
+    uint256 _byteLength = StoreSwitch.getFieldLength(_tableId, _keyTuple, 6, getSchema());
     return _byteLength / 1;
   }
 
@@ -550,7 +513,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    uint256 _byteLength = _store.getFieldLength(_tableId, _keyTuple, 7, getSchema());
+    uint256 _byteLength = _store.getFieldLength(_tableId, _keyTuple, 6, getSchema());
     return _byteLength / 1;
   }
 
@@ -559,7 +522,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    bytes memory _blob = StoreSwitch.getFieldSlice(_tableId, _keyTuple, 7, getSchema(), _index * 1, (_index + 1) * 1);
+    bytes memory _blob = StoreSwitch.getFieldSlice(_tableId, _keyTuple, 6, getSchema(), _index * 1, (_index + 1) * 1);
     return (string(_blob));
   }
 
@@ -568,7 +531,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    bytes memory _blob = _store.getFieldSlice(_tableId, _keyTuple, 7, getSchema(), _index * 1, (_index + 1) * 1);
+    bytes memory _blob = _store.getFieldSlice(_tableId, _keyTuple, 6, getSchema(), _index * 1, (_index + 1) * 1);
     return (string(_blob));
   }
 
@@ -577,7 +540,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.pushToField(_tableId, _keyTuple, 7, bytes((_slice)));
+    StoreSwitch.pushToField(_tableId, _keyTuple, 6, bytes((_slice)));
   }
 
   /** Push a slice to title (using the specified store) */
@@ -585,7 +548,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.pushToField(_tableId, _keyTuple, 7, bytes((_slice)));
+    _store.pushToField(_tableId, _keyTuple, 6, bytes((_slice)));
   }
 
   /** Pop a slice from title */
@@ -593,7 +556,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.popFromField(_tableId, _keyTuple, 7, 1);
+    StoreSwitch.popFromField(_tableId, _keyTuple, 6, 1);
   }
 
   /** Pop a slice from title (using the specified store) */
@@ -601,7 +564,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.popFromField(_tableId, _keyTuple, 7, 1);
+    _store.popFromField(_tableId, _keyTuple, 6, 1);
   }
 
   /** Update a slice of title at `_index` */
@@ -609,7 +572,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.updateInField(_tableId, _keyTuple, 7, _index * 1, bytes((_slice)));
+    StoreSwitch.updateInField(_tableId, _keyTuple, 6, _index * 1, bytes((_slice)));
   }
 
   /** Update a slice of title (using the specified store) at `_index` */
@@ -617,7 +580,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.updateInField(_tableId, _keyTuple, 7, _index * 1, bytes((_slice)));
+    _store.updateInField(_tableId, _keyTuple, 6, _index * 1, bytes((_slice)));
   }
 
   /** Get description */
@@ -625,7 +588,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    bytes memory _blob = StoreSwitch.getField(_tableId, _keyTuple, 8);
+    bytes memory _blob = StoreSwitch.getField(_tableId, _keyTuple, 7);
     return (string(_blob));
   }
 
@@ -634,7 +597,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    bytes memory _blob = _store.getField(_tableId, _keyTuple, 8);
+    bytes memory _blob = _store.getField(_tableId, _keyTuple, 7);
     return (string(_blob));
   }
 
@@ -643,7 +606,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.setField(_tableId, _keyTuple, 8, bytes((description)));
+    StoreSwitch.setField(_tableId, _keyTuple, 7, bytes((description)));
   }
 
   /** Set description (using the specified store) */
@@ -651,7 +614,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.setField(_tableId, _keyTuple, 8, bytes((description)));
+    _store.setField(_tableId, _keyTuple, 7, bytes((description)));
   }
 
   /** Get the length of description */
@@ -659,7 +622,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    uint256 _byteLength = StoreSwitch.getFieldLength(_tableId, _keyTuple, 8, getSchema());
+    uint256 _byteLength = StoreSwitch.getFieldLength(_tableId, _keyTuple, 7, getSchema());
     return _byteLength / 1;
   }
 
@@ -668,7 +631,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    uint256 _byteLength = _store.getFieldLength(_tableId, _keyTuple, 8, getSchema());
+    uint256 _byteLength = _store.getFieldLength(_tableId, _keyTuple, 7, getSchema());
     return _byteLength / 1;
   }
 
@@ -677,7 +640,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    bytes memory _blob = StoreSwitch.getFieldSlice(_tableId, _keyTuple, 8, getSchema(), _index * 1, (_index + 1) * 1);
+    bytes memory _blob = StoreSwitch.getFieldSlice(_tableId, _keyTuple, 7, getSchema(), _index * 1, (_index + 1) * 1);
     return (string(_blob));
   }
 
@@ -686,7 +649,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    bytes memory _blob = _store.getFieldSlice(_tableId, _keyTuple, 8, getSchema(), _index * 1, (_index + 1) * 1);
+    bytes memory _blob = _store.getFieldSlice(_tableId, _keyTuple, 7, getSchema(), _index * 1, (_index + 1) * 1);
     return (string(_blob));
   }
 
@@ -695,7 +658,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.pushToField(_tableId, _keyTuple, 8, bytes((_slice)));
+    StoreSwitch.pushToField(_tableId, _keyTuple, 7, bytes((_slice)));
   }
 
   /** Push a slice to description (using the specified store) */
@@ -703,7 +666,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.pushToField(_tableId, _keyTuple, 8, bytes((_slice)));
+    _store.pushToField(_tableId, _keyTuple, 7, bytes((_slice)));
   }
 
   /** Pop a slice from description */
@@ -711,7 +674,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.popFromField(_tableId, _keyTuple, 8, 1);
+    StoreSwitch.popFromField(_tableId, _keyTuple, 7, 1);
   }
 
   /** Pop a slice from description (using the specified store) */
@@ -719,7 +682,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.popFromField(_tableId, _keyTuple, 8, 1);
+    _store.popFromField(_tableId, _keyTuple, 7, 1);
   }
 
   /** Update a slice of description at `_index` */
@@ -727,7 +690,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.updateInField(_tableId, _keyTuple, 8, _index * 1, bytes((_slice)));
+    StoreSwitch.updateInField(_tableId, _keyTuple, 7, _index * 1, bytes((_slice)));
   }
 
   /** Update a slice of description (using the specified store) at `_index` */
@@ -735,7 +698,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.updateInField(_tableId, _keyTuple, 8, _index * 1, bytes((_slice)));
+    _store.updateInField(_tableId, _keyTuple, 7, _index * 1, bytes((_slice)));
   }
 
   /** Get nftMetadata */
@@ -743,7 +706,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    bytes memory _blob = StoreSwitch.getField(_tableId, _keyTuple, 9);
+    bytes memory _blob = StoreSwitch.getField(_tableId, _keyTuple, 8);
     return (string(_blob));
   }
 
@@ -752,7 +715,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    bytes memory _blob = _store.getField(_tableId, _keyTuple, 9);
+    bytes memory _blob = _store.getField(_tableId, _keyTuple, 8);
     return (string(_blob));
   }
 
@@ -761,7 +724,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.setField(_tableId, _keyTuple, 9, bytes((nftMetadata)));
+    StoreSwitch.setField(_tableId, _keyTuple, 8, bytes((nftMetadata)));
   }
 
   /** Set nftMetadata (using the specified store) */
@@ -769,7 +732,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.setField(_tableId, _keyTuple, 9, bytes((nftMetadata)));
+    _store.setField(_tableId, _keyTuple, 8, bytes((nftMetadata)));
   }
 
   /** Get the length of nftMetadata */
@@ -777,7 +740,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    uint256 _byteLength = StoreSwitch.getFieldLength(_tableId, _keyTuple, 9, getSchema());
+    uint256 _byteLength = StoreSwitch.getFieldLength(_tableId, _keyTuple, 8, getSchema());
     return _byteLength / 1;
   }
 
@@ -786,7 +749,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    uint256 _byteLength = _store.getFieldLength(_tableId, _keyTuple, 9, getSchema());
+    uint256 _byteLength = _store.getFieldLength(_tableId, _keyTuple, 8, getSchema());
     return _byteLength / 1;
   }
 
@@ -795,7 +758,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    bytes memory _blob = StoreSwitch.getFieldSlice(_tableId, _keyTuple, 9, getSchema(), _index * 1, (_index + 1) * 1);
+    bytes memory _blob = StoreSwitch.getFieldSlice(_tableId, _keyTuple, 8, getSchema(), _index * 1, (_index + 1) * 1);
     return (string(_blob));
   }
 
@@ -804,7 +767,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    bytes memory _blob = _store.getFieldSlice(_tableId, _keyTuple, 9, getSchema(), _index * 1, (_index + 1) * 1);
+    bytes memory _blob = _store.getFieldSlice(_tableId, _keyTuple, 8, getSchema(), _index * 1, (_index + 1) * 1);
     return (string(_blob));
   }
 
@@ -813,7 +776,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.pushToField(_tableId, _keyTuple, 9, bytes((_slice)));
+    StoreSwitch.pushToField(_tableId, _keyTuple, 8, bytes((_slice)));
   }
 
   /** Push a slice to nftMetadata (using the specified store) */
@@ -821,7 +784,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.pushToField(_tableId, _keyTuple, 9, bytes((_slice)));
+    _store.pushToField(_tableId, _keyTuple, 8, bytes((_slice)));
   }
 
   /** Pop a slice from nftMetadata */
@@ -829,7 +792,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.popFromField(_tableId, _keyTuple, 9, 1);
+    StoreSwitch.popFromField(_tableId, _keyTuple, 8, 1);
   }
 
   /** Pop a slice from nftMetadata (using the specified store) */
@@ -837,7 +800,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.popFromField(_tableId, _keyTuple, 9, 1);
+    _store.popFromField(_tableId, _keyTuple, 8, 1);
   }
 
   /** Update a slice of nftMetadata at `_index` */
@@ -845,7 +808,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.updateInField(_tableId, _keyTuple, 9, _index * 1, bytes((_slice)));
+    StoreSwitch.updateInField(_tableId, _keyTuple, 8, _index * 1, bytes((_slice)));
   }
 
   /** Update a slice of nftMetadata (using the specified store) at `_index` */
@@ -853,7 +816,7 @@ library Moment {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.updateInField(_tableId, _keyTuple, 9, _index * 1, bytes((_slice)));
+    _store.updateInField(_tableId, _keyTuple, 8, _index * 1, bytes((_slice)));
   }
 
   /** Get the full data */
@@ -881,25 +844,13 @@ library Moment {
     uint64 startTime,
     uint64 endTime,
     bool isLive,
-    bytes32 owner,
+    string memory owner,
     string memory location,
-    string memory locationType,
     string memory title,
     string memory description,
     string memory nftMetadata
   ) internal {
-    bytes memory _data = encode(
-      date,
-      startTime,
-      endTime,
-      isLive,
-      owner,
-      location,
-      locationType,
-      title,
-      description,
-      nftMetadata
-    );
+    bytes memory _data = encode(date, startTime, endTime, isLive, owner, location, title, description, nftMetadata);
 
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
@@ -915,25 +866,13 @@ library Moment {
     uint64 startTime,
     uint64 endTime,
     bool isLive,
-    bytes32 owner,
+    string memory owner,
     string memory location,
-    string memory locationType,
     string memory title,
     string memory description,
     string memory nftMetadata
   ) internal {
-    bytes memory _data = encode(
-      date,
-      startTime,
-      endTime,
-      isLive,
-      owner,
-      location,
-      locationType,
-      title,
-      description,
-      nftMetadata
-    );
+    bytes memory _data = encode(date, startTime, endTime, isLive, owner, location, title, description, nftMetadata);
 
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
@@ -951,7 +890,6 @@ library Moment {
       _table.isLive,
       _table.owner,
       _table.location,
-      _table.locationType,
       _table.title,
       _table.description,
       _table.nftMetadata
@@ -969,7 +907,6 @@ library Moment {
       _table.isLive,
       _table.owner,
       _table.location,
-      _table.locationType,
       _table.title,
       _table.description,
       _table.nftMetadata
@@ -978,8 +915,8 @@ library Moment {
 
   /** Decode the tightly packed blob using this table's schema */
   function decode(bytes memory _blob) internal view returns (MomentData memory _table) {
-    // 57 is the total byte length of static data
-    PackedCounter _encodedLengths = PackedCounter.wrap(Bytes.slice32(_blob, 57));
+    // 25 is the total byte length of static data
+    PackedCounter _encodedLengths = PackedCounter.wrap(Bytes.slice32(_blob, 25));
 
     _table.date = (uint64(Bytes.slice8(_blob, 0)));
 
@@ -989,21 +926,19 @@ library Moment {
 
     _table.isLive = (_toBool(uint8(Bytes.slice1(_blob, 24))));
 
-    _table.owner = (Bytes.slice32(_blob, 25));
-
     // Store trims the blob if dynamic fields are all empty
-    if (_blob.length > 57) {
+    if (_blob.length > 25) {
       uint256 _start;
       // skip static data length + dynamic lengths word
-      uint256 _end = 89;
+      uint256 _end = 57;
 
       _start = _end;
       _end += _encodedLengths.atIndex(0);
-      _table.location = (string(SliceLib.getSubslice(_blob, _start, _end).toBytes()));
+      _table.owner = (string(SliceLib.getSubslice(_blob, _start, _end).toBytes()));
 
       _start = _end;
       _end += _encodedLengths.atIndex(1);
-      _table.locationType = (string(SliceLib.getSubslice(_blob, _start, _end).toBytes()));
+      _table.location = (string(SliceLib.getSubslice(_blob, _start, _end).toBytes()));
 
       _start = _end;
       _end += _encodedLengths.atIndex(2);
@@ -1025,16 +960,15 @@ library Moment {
     uint64 startTime,
     uint64 endTime,
     bool isLive,
-    bytes32 owner,
+    string memory owner,
     string memory location,
-    string memory locationType,
     string memory title,
     string memory description,
     string memory nftMetadata
   ) internal view returns (bytes memory) {
     uint40[] memory _counters = new uint40[](5);
-    _counters[0] = uint40(bytes(location).length);
-    _counters[1] = uint40(bytes(locationType).length);
+    _counters[0] = uint40(bytes(owner).length);
+    _counters[1] = uint40(bytes(location).length);
     _counters[2] = uint40(bytes(title).length);
     _counters[3] = uint40(bytes(description).length);
     _counters[4] = uint40(bytes(nftMetadata).length);
@@ -1046,10 +980,9 @@ library Moment {
         startTime,
         endTime,
         isLive,
-        owner,
         _encodedLengths.unwrap(),
+        bytes((owner)),
         bytes((location)),
-        bytes((locationType)),
         bytes((title)),
         bytes((description)),
         bytes((nftMetadata))

@@ -23,7 +23,7 @@ bytes32 constant CheckInTableId = _tableId;
 struct CheckInData {
   bytes32 momentId;
   uint256 blockNumber;
-  bytes32 wallet;
+  string wallet;
 }
 
 library CheckIn {
@@ -32,7 +32,7 @@ library CheckIn {
     SchemaType[] memory _schema = new SchemaType[](3);
     _schema[0] = SchemaType.BYTES32;
     _schema[1] = SchemaType.UINT256;
-    _schema[2] = SchemaType.BYTES32;
+    _schema[2] = SchemaType.STRING;
 
     return SchemaLib.encode(_schema);
   }
@@ -144,37 +144,121 @@ library CheckIn {
   }
 
   /** Get wallet */
-  function getWallet(bytes32 key) internal view returns (bytes32 wallet) {
+  function getWallet(bytes32 key) internal view returns (string memory wallet) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
     bytes memory _blob = StoreSwitch.getField(_tableId, _keyTuple, 2);
-    return (Bytes.slice32(_blob, 0));
+    return (string(_blob));
   }
 
   /** Get wallet (using the specified store) */
-  function getWallet(IStore _store, bytes32 key) internal view returns (bytes32 wallet) {
+  function getWallet(IStore _store, bytes32 key) internal view returns (string memory wallet) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
     bytes memory _blob = _store.getField(_tableId, _keyTuple, 2);
-    return (Bytes.slice32(_blob, 0));
+    return (string(_blob));
   }
 
   /** Set wallet */
-  function setWallet(bytes32 key, bytes32 wallet) internal {
+  function setWallet(bytes32 key, string memory wallet) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    StoreSwitch.setField(_tableId, _keyTuple, 2, abi.encodePacked((wallet)));
+    StoreSwitch.setField(_tableId, _keyTuple, 2, bytes((wallet)));
   }
 
   /** Set wallet (using the specified store) */
-  function setWallet(IStore _store, bytes32 key, bytes32 wallet) internal {
+  function setWallet(IStore _store, bytes32 key, string memory wallet) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32((key));
 
-    _store.setField(_tableId, _keyTuple, 2, abi.encodePacked((wallet)));
+    _store.setField(_tableId, _keyTuple, 2, bytes((wallet)));
+  }
+
+  /** Get the length of wallet */
+  function lengthWallet(bytes32 key) internal view returns (uint256) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    uint256 _byteLength = StoreSwitch.getFieldLength(_tableId, _keyTuple, 2, getSchema());
+    return _byteLength / 1;
+  }
+
+  /** Get the length of wallet (using the specified store) */
+  function lengthWallet(IStore _store, bytes32 key) internal view returns (uint256) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    uint256 _byteLength = _store.getFieldLength(_tableId, _keyTuple, 2, getSchema());
+    return _byteLength / 1;
+  }
+
+  /** Get an item of wallet (unchecked, returns invalid data if index overflows) */
+  function getItemWallet(bytes32 key, uint256 _index) internal view returns (string memory) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    bytes memory _blob = StoreSwitch.getFieldSlice(_tableId, _keyTuple, 2, getSchema(), _index * 1, (_index + 1) * 1);
+    return (string(_blob));
+  }
+
+  /** Get an item of wallet (using the specified store) (unchecked, returns invalid data if index overflows) */
+  function getItemWallet(IStore _store, bytes32 key, uint256 _index) internal view returns (string memory) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    bytes memory _blob = _store.getFieldSlice(_tableId, _keyTuple, 2, getSchema(), _index * 1, (_index + 1) * 1);
+    return (string(_blob));
+  }
+
+  /** Push a slice to wallet */
+  function pushWallet(bytes32 key, string memory _slice) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    StoreSwitch.pushToField(_tableId, _keyTuple, 2, bytes((_slice)));
+  }
+
+  /** Push a slice to wallet (using the specified store) */
+  function pushWallet(IStore _store, bytes32 key, string memory _slice) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    _store.pushToField(_tableId, _keyTuple, 2, bytes((_slice)));
+  }
+
+  /** Pop a slice from wallet */
+  function popWallet(bytes32 key) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    StoreSwitch.popFromField(_tableId, _keyTuple, 2, 1);
+  }
+
+  /** Pop a slice from wallet (using the specified store) */
+  function popWallet(IStore _store, bytes32 key) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    _store.popFromField(_tableId, _keyTuple, 2, 1);
+  }
+
+  /** Update a slice of wallet at `_index` */
+  function updateWallet(bytes32 key, uint256 _index, string memory _slice) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    StoreSwitch.updateInField(_tableId, _keyTuple, 2, _index * 1, bytes((_slice)));
+  }
+
+  /** Update a slice of wallet (using the specified store) at `_index` */
+  function updateWallet(IStore _store, bytes32 key, uint256 _index, string memory _slice) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32((key));
+
+    _store.updateInField(_tableId, _keyTuple, 2, _index * 1, bytes((_slice)));
   }
 
   /** Get the full data */
@@ -196,7 +280,7 @@ library CheckIn {
   }
 
   /** Set the full data using individual values */
-  function set(bytes32 key, bytes32 momentId, uint256 blockNumber, bytes32 wallet) internal {
+  function set(bytes32 key, bytes32 momentId, uint256 blockNumber, string memory wallet) internal {
     bytes memory _data = encode(momentId, blockNumber, wallet);
 
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -206,7 +290,7 @@ library CheckIn {
   }
 
   /** Set the full data using individual values (using the specified store) */
-  function set(IStore _store, bytes32 key, bytes32 momentId, uint256 blockNumber, bytes32 wallet) internal {
+  function set(IStore _store, bytes32 key, bytes32 momentId, uint256 blockNumber, string memory wallet) internal {
     bytes memory _data = encode(momentId, blockNumber, wallet);
 
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -226,17 +310,33 @@ library CheckIn {
   }
 
   /** Decode the tightly packed blob using this table's schema */
-  function decode(bytes memory _blob) internal pure returns (CheckInData memory _table) {
+  function decode(bytes memory _blob) internal view returns (CheckInData memory _table) {
+    // 64 is the total byte length of static data
+    PackedCounter _encodedLengths = PackedCounter.wrap(Bytes.slice32(_blob, 64));
+
     _table.momentId = (Bytes.slice32(_blob, 0));
 
     _table.blockNumber = (uint256(Bytes.slice32(_blob, 32)));
 
-    _table.wallet = (Bytes.slice32(_blob, 64));
+    // Store trims the blob if dynamic fields are all empty
+    if (_blob.length > 64) {
+      uint256 _start;
+      // skip static data length + dynamic lengths word
+      uint256 _end = 96;
+
+      _start = _end;
+      _end += _encodedLengths.atIndex(0);
+      _table.wallet = (string(SliceLib.getSubslice(_blob, _start, _end).toBytes()));
+    }
   }
 
   /** Tightly pack full data using this table's schema */
-  function encode(bytes32 momentId, uint256 blockNumber, bytes32 wallet) internal view returns (bytes memory) {
-    return abi.encodePacked(momentId, blockNumber, wallet);
+  function encode(bytes32 momentId, uint256 blockNumber, string memory wallet) internal view returns (bytes memory) {
+    uint40[] memory _counters = new uint40[](1);
+    _counters[0] = uint40(bytes(wallet).length);
+    PackedCounter _encodedLengths = PackedCounterLib.pack(_counters);
+
+    return abi.encodePacked(momentId, blockNumber, _encodedLengths.unwrap(), bytes((wallet)));
   }
 
   /** Encode keys as a bytes32 array using this table's schema */
